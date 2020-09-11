@@ -1,0 +1,32 @@
+Resources:
+  AggregatorMenuProcessQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: ${self:custom.sqsAggregatorMenuProcess}
+      VisibilityTimeout: 610 # slightly longer than the function timeout
+      MessageRetentionPeriod: 345600 # 4 days in seconds
+      RedrivePolicy:
+        deadLetterTargetArn:
+          'Fn::GetAtt':
+            - AggregatorMenuProcessDeadLetterQueue
+            - Arn
+        maxReceiveCount: 5
+  AggregatorMenuProcessDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: ${self:custom.sqsAggregatorMenuProcessDLQ}
+      MessageRetentionPeriod: 1209600 # 14 days in seconds
+  MenuItemBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.menuItemsBucketName}
+      # Set the CORS policy to allow access to the browser
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - "*"
+            AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - GET
+            MaxAge: 0
